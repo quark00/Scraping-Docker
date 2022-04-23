@@ -1,0 +1,46 @@
+version: '3.9'
+
+services:
+  postgresql:
+    image: postgres:14.1-bullseye
+    container_name: my_postgresql
+    networks:
+      - net
+    ports:
+      - 5432:5432
+    volumes:
+      - db_volume:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+
+  splash:
+    depends_on:
+      - postgresql
+    image: scrapinghub/splash:3.5
+    container_name: my_splash
+    networks:
+      - net
+    ports:
+      - 8050:8050
+
+  scrapy:
+    depends_on:
+      - splash
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    image: scrapy:2.6.1
+    container_name: my_scrapy
+    networks:
+      - net
+    volumes:
+      - $PWD/app:/usr/src/app
+    tty: true
+
+networks:
+  net:
+
+volumes:
+  db_volume:
